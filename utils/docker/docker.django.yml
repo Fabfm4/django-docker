@@ -1,0 +1,12 @@
+    django:
+        build: .
+        hostname: "${PROJECT_NAME}_django"
+        container_name: "${PROJECT_NAME}_django"
+        command: python3 manage.py runserver 0.0.0.0:8000
+        volumes:
+            - ./src:/src
+            - ./media:/media
+        ports:
+            - "8000:8000"
+        links:
+            - postgresql
