@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from itertools import ifilter
-
 from rest_framework_nested.routers import NestedSimpleRouter
 
 from .auth import AuthenticationRouter
@@ -52,7 +50,7 @@ class DefaultRouter(SimpleRouter):
         # Section for the depth of the route and add more routes
 
         if depth_level > 1:
-            routers = ifilter(
+            routers = filter(
                 lambda r: (r._depth_level == (depth_level - 1)) and
                 r._nested_prefix == parent_prefix,
                 self._nested_object_registry

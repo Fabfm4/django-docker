@@ -45,7 +45,7 @@ create_docker_file(){
     fi
     cp -R ./utils/django/requirements ./src/
     touch ./Dockerfile
-    echo "FROM python:3" >> ./Dockerfile
+    echo "FROM python:3.4" >> ./Dockerfile
     echo "ENV PYTHONUNBUFFERED 1" >> ./Dockerfile
     echo "RUN mkdir /src" >> ./Dockerfile
     echo "RUN mkdir /src/requirements" >> ./Dockerfile
@@ -77,19 +77,28 @@ create_django_project(){
 }
 
 move_core_api(){
-    out "Moving Core Api..." 3
+    out "Moving settings files..." 3
     mkdir ./src/$1/settings
     cp ./utils/django/settings_base.py ./src/$1/settings/__init__.py
-    cp ./utils/django/settings_local.py ./src/$1/settings
-    cp ./utils/django/settings_staging.py ./src/$1/settings
-    cp ./utils/django/settings_testing.py ./src/$1/settings
+    cp ./utils/django/settings_local.py ./src/$1/settings/local.py
+    cp ./utils/django/settings_staging.py ./src/$1/settings/staging.py
+    cp ./utils/django/settings_testing.py ./src/$1/settings/testing.py
     out "Done..." 2
+    out "Moving core api..." 3
+    cp -R ./utils/django/api ./src/$1/api
+    cp -R ./utils/django/core ./src/$1/core
+    cp -R ./utils/django/utils ./src/$1/utils
+    out "Done..." 2
+    out "Moving urls config..." 3
+    rm -rf ./src/$1/urls.py
+    cp ./utils/django/urls/urls.py ./src/$1/urls.py
+    out "Done" 2
 }
 
 edit_configuration(){
     out "Creating configurations..." 3
     text_original=$1.settings
-    text_change=$1.settings.settings_local
+    text_change=$1.settings.local
     sed "s/${text_original}/${text_change}/g" src/manage.py >> src/manage.py.temp
     rm -rf src/manage.py
     mv src/manage.py.temp src/manage.py
@@ -97,17 +106,25 @@ edit_configuration(){
     rm -rf src/$1/settings/__init__.py
     mv src/$1/settings/__init__.py.temp src/$1/settings/__init__.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/settings_local.py >> src/$1/settings/settings_local.py.temp
-    rm -rf src/$1/settings/settings_local.py
-    mv src/$1/settings/settings_local.py.temp src/$1/settings/settings_local.py
+    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/local.py >> src/$1/settings/local.py.temp
+    rm -rf src/$1/settings/local.py
+    mv src/$1/settings/local.py.temp src/$1/settings/local.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/settings_staging.py >> src/$1/settings/settings_staging.py.temp
-    rm -rf src/$1/settings/settings_staging.py
-    mv src/$1/settings/settings_staging.py.temp src/$1/settings/settings_staging.py
+    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/staging.py >> src/$1/settings/staging.py.temp
+    rm -rf src/$1/settings/staging.py
+    mv src/$1/settings/staging.py.temp src/$1/settings/staging.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/settings_testing.py >> src/$1/settings/settings_testing.py.temp
-    rm -rf src/$1/settings/settings_testing.py
-    mv src/$1/settings/settings_testing.py.temp src/$1/settings/settings_testing.py
+    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/testing.py >> src/$1/settings/testing.py.temp
+    rm -rf src/$1/settings/testing.py
+    mv src/$1/settings/testing.py.temp src/$1/settings/testing.py
+
+    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/urls.py >> src/$1/urls.py.temp
+    rm -rf src/$1/urls.py
+    mv src/$1/urls.py.temp src/$1/urls.py
+
+    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/api/urls.py >> src/$1/api/urls.py.temp
+    rm -rf src/$1/api/urls.py
+    mv src/$1/api/urls.py.temp src/$1/api/urls.py
     out "Done..." 2
 }
 

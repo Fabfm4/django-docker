@@ -99,7 +99,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser'
     ),
     'DEFAULT_PAGINATION_CLASS': (
-        '${PROJECT_NAME}.utils.pagination.ProjectDefaultPagination'
+        'rest_framework.pagination.PageNumberPagination'
     )
 }
 
@@ -198,3 +198,10 @@ STATICFILES_DIRS = (
 STATIC_ROOT = os.path.realpath(
     os.path.join(BASE_DIR, '..', '..', 'media', 'assets')
 )
+
+# User uploaded files
+MEDIA_ROOT = os.path.realpath(
+    os.path.join(BASE_DIR, '..', '..', 'media', 'uploads')
+)
+
+MEDIA_URL = '/media/uploads/'

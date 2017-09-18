@@ -1,0 +1,6 @@
+/src
+.env
+Dockerfile
+docker-compose.yml
+/media
+tox.ini
