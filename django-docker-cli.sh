@@ -15,7 +15,7 @@ out() {
 }
 
 create_docker_env(){
-    if [[ ! -d "./.env"  ]]; then
+    if [ ! -d "./.env"  ]; then
         rm -rf ./.env
     fi
     touch ./.env
@@ -30,7 +30,7 @@ create_docker_env(){
 }
 
 create_docker_compose_files(){
-    if [[ ! -d "./docker-compose.yml" ]]; then
+    if [ ! -d "./docker-compose.yml" ]; then
         rm -rf ./docker-compose.yml
     fi
     touch ./docker-compose.yml
@@ -40,7 +40,7 @@ create_docker_compose_files(){
 }
 
 create_docker_file(){
-    if [[ ! -d "./Dockerfile" ]]; then
+    if [ ! -d "./Dockerfile" ]; then
         rm -rf ./Dockerfile
     fi
     cp -R ./utils/django/requirements ./src/
@@ -71,8 +71,7 @@ create_docker_files(){
 
 create_django_project(){
     out "Creating project Django..." 3
-    docker-compose run django django-admin.py startproject $1 .
-    docker-compose build
+    docker-compose run --user $(id -u) django django-admin.py startproject $1 .
     out "Done..." 2
 }
 
@@ -99,38 +98,39 @@ edit_configuration(){
     out "Creating configurations..." 3
     text_original=$1.settings
     text_change=$1.settings.local
-    sed "s/${text_original}/${text_change}/g" src/manage.py >> src/manage.py.temp
-    rm -rf src/manage.py
-    mv src/manage.py.temp src/manage.py
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/__init__.py >> src/$1/settings/__init__.py.temp
-    rm -rf src/$1/settings/__init__.py
-    mv src/$1/settings/__init__.py.temp src/$1/settings/__init__.py
+    pwd
+    sed "s/${text_original}/${text_change}/g" ./src/manage.py >> ./src/manage.py.temp
+    rm -rf ./src/manage.py
+    mv ./src/manage.py.temp ./src/manage.py
+    sed "s/\${PROJECT_NAME}/${1}/g" ./src/$1/settings/__init__.py >> ./src/$1/settings/__init__.py.temp
+    rm -rf ./src/$1/settings/__init__.py
+    mv ./src/$1/settings/__init__.py.temp ./src/$1/settings/__init__.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/local.py >> src/$1/settings/local.py.temp
-    rm -rf src/$1/settings/local.py
-    mv src/$1/settings/local.py.temp src/$1/settings/local.py
+    sed "s/\${PROJECT_NAME}/${1}/g" ./src/$1/settings/local.py >> ./src/$1/settings/local.py.temp
+    rm -rf ./src/$1/settings/local.py
+    mv ./src/$1/settings/local.py.temp ./src/$1/settings/local.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/staging.py >> src/$1/settings/staging.py.temp
-    rm -rf src/$1/settings/staging.py
-    mv src/$1/settings/staging.py.temp src/$1/settings/staging.py
+    sed "s/\${PROJECT_NAME}/${1}/g" ./src/$1/settings/staging.py >> ./src/$1/settings/staging.py.temp
+    rm -rf ./src/$1/settings/staging.py
+    mv ./src/$1/settings/staging.py.temp ./src/$1/settings/staging.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/settings/testing.py >> src/$1/settings/testing.py.temp
-    rm -rf src/$1/settings/testing.py
-    mv src/$1/settings/testing.py.temp src/$1/settings/testing.py
+    sed "s/\${PROJECT_NAME}/${1}/g" ./src/$1/settings/testing.py >> ./src/$1/settings/testing.py.temp
+    rm -rf ./src/$1/settings/testing.py
+    mv ./src/$1/settings/testing.py.temp ./src/$1/settings/testing.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/urls.py >> src/$1/urls.py.temp
-    rm -rf src/$1/urls.py
-    mv src/$1/urls.py.temp src/$1/urls.py
+    sed "s/\${PROJECT_NAME}/${1}/g" ./src/$1/urls.py >> ./src/$1/urls.py.temp
+    rm -rf ./src/$1/urls.py
+    mv ./src/$1/urls.py.temp ./src/$1/urls.py
 
-    sed "s/\${PROJECT_NAME}/${1}/g" src/$1/api/urls.py >> src/$1/api/urls.py.temp
-    rm -rf src/$1/api/urls.py
-    mv src/$1/api/urls.py.temp src/$1/api/urls.py
+    sed "s/\${PROJECT_NAME}/${1}/g" ./src/$1/api/urls.py >> ./src/$1/api/urls.py.temp
+    rm -rf ./src/$1/api/urls.py
+    mv ./src/$1/api/urls.py.temp ./src/$1/api/urls.py
     out "Done..." 2
 }
 
 up(){
     out "Up docker..." 3
-    docker-compose up -d
+    docker-compose up
     out "Done..." 2
 }
 
@@ -143,7 +143,7 @@ get_project_name(){
     project_name=""
     for entry in *
     do
-        if [ ! "$entry" == "requirements" ] && [ ! "$entry" == "manage.py" ]; then
+        if [ $entry != "requirements" ] && [ $entry != "manage.py" ]; then
             project_name=$entry
         fi
     done
@@ -160,7 +160,7 @@ migrate(){
 makemigrations(){
     out "Make migrations..." 3
     local project_name=$(get_project_name)
-    docker exec -it ${project_name}_django bash -c "python3 manage.py makemigrations"
+    docker exec --user $(id -u) -it ${project_name}_django bash -c "python3 manage.py makemigrations"
     out "Done..." 2
 }
 
@@ -175,7 +175,7 @@ createapplication(){
     out "Make migrations..." 3
     local project_name=$(get_project_name)
     mkdir src/$project_name/$1
-    docker exec -it ${project_name}_django bash -c "python3 manage.py startapp ${1} ${project_name}/${1}"
+    docker exec -it --user $(id -u) ${project_name}_django bash -c "python3 manage.py startapp ${1} ${project_name}/${1}"
     out "Done..." 2
 }
 
@@ -183,14 +183,14 @@ init(){
     out "Create project Django Docker..." 3
 
     out "Create directory /src" 3
-    if [[ ! -d "./src" ]]; then
+    if [ ! -d "./src" ]; then
         mkdir ./src
     fi
     out "Done..." 2
 
     out "Create directory /media" 3
-    if [[ ! -d "./media" ]]; then
-        mkdir ./src
+    if [ ! -d "./media" ]; then
+        mkdir ./media
     fi
     out "Done..." 2
 
